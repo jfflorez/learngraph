@@ -2,7 +2,7 @@
 #from math import gamma
 import time
 import numpy as np
-from . import utils # explicit relative import
+import src.utils as utils # explicit relative import
 
 def prox_sum_log(x, gamma, param={'nargout': 1}):
     """    PROX_SUM_LOG Proximal operator of log-barrier  - sum(log(x))
