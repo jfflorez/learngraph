@@ -6,8 +6,8 @@ from scipy.spatial.distance import pdist
 import matplotlib.pyplot as plt
 
 #from utils import *
-import models.tools.utils as utils
-import models.tools.prox  as prox
+import src.tools.utils as utils
+import src.tools.prox  as prox
 
 def gsp_learn_graph_log_degrees(Z, a, b, params={'nargout': 1}):
 
