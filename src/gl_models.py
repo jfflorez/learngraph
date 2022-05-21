@@ -36,11 +36,12 @@ def gsp_learn_graph_log_degrees(Z, a, b, params={'nargout': 1}):
             W, stat = gsp_learn_graph_log_degrees(Z, a, b, params)
 
     Example:
+            from pygsp import graphs
             G = gsp_sensor(256);
-            f1 = @(x,y) sin((2-x-y).^2);
-            f2 = @(x,y) cos((x+y).^2);
-            f3 = @(x,y) (x-.5).^2 + (y-.5).^3 + x - y;
-            f4 = @(x,y) sin(3*((x-.5).^2+(y-.5).^2));
+            f1 = lambda x, y: np.sin((2-x-y)**2);
+            f2 = lambda x, y: np.cos((x+y)**2);
+            f3 = lambda x, y: (x-.5)**2 + (y-.5)**3 + x - y;
+            f4 = lambda x, y: np.sin(3*((x-.5)**2+(y-.5)**2));
             X = [f1(G.coords(:,1), G.coords(:,2)), f2(G.coords(:,1), G.coords(:,2)), f3(G.coords(:,1), G.coords(:,2)), f4(G.coords(:,1), G.coords(:,2))];
             figure; subplot(2,2,1); gsp_plot_signal(G, X(:,1)); title('1st smooth signal');
             subplot(2,2,2); gsp_plot_signal(G, X(:,2)); title('2nd smooth signal');
@@ -396,3 +397,21 @@ def main_test_gsp_learn_graph_log_degrees():
 
 
     a = 0
+
+def estimate_theta(Z,k):
+
+    n = Z.shape[0]
+
+    theta_ub = 0
+    theta_lb = 0
+    for i in range(n):
+        z_row = Z[i,:]
+        idx_sort = np.argsort(z_row)
+        #b_k = np.sum(z[idx_sort[0:card_E]])
+        b_k = np.cumsum(z_row[idx_sort])[k-1]
+        z_k = z_row[idx_sort[k-1]]
+        z_k_plus_1 = z_row[idx_sort[k]]
+        theta_ub += 1/np.sqrt(k*(z_k**2)-b_k*z_k)
+        theta_lb += 1/np.sqrt(k*(z_k_plus_1**2)-b_k*z_k_plus_1)
+
+    return np.sqrt((theta_lb*theta_ub))/n
