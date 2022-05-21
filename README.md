@@ -5,7 +5,7 @@ In this repository, I intend to provide python implementations of graph learning
 1. **Block-based spectral image reconstruction using smoothness on graphs (2022).**
 2. **Graph learning based on signal smoothness representation for homogeneous and heterogenous change detection (2022).**
 
-Particularly, this first version of the repo includes the graph learning model developed by Vassilis Kalofolias at al. in the papers:
+Particularly, this first version of the repo includes the graph learning model developed by Vassilis Kalofolias et al. in the papers:
 
 ** How to learn a graph from smooth signals (2016), and large scale graph learning from smooth signals (2017).**
 
