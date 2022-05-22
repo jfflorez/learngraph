@@ -1,10 +1,13 @@
 """ This file contains a python implementation of several functions, originally developed by
     Vassilis Kalofolias in December, 2015. These are important for the implementation
-    of Kalofolias' graph learning algorithm in Python"""
+    of Kalofolias' graph learning algorithm in Python.
 
-# Date: May, 2021
-# Author: Juan Felipe Florez-Ospina
-# testing: main_test_squareform_sp
+    Date: May, 2021
+    Author: Juan Felipe Florez-Ospina
+    testing: main_test_squareform_sp    
+    """
+
+
 
 import numpy as np
 import warnings

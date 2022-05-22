@@ -1,3 +1,12 @@
+""" This file contains a python implementation of the graph learning model, 'gsp_learn_graph_log_degrees', originally developed by
+    Vassilis Kalofolias in December, 2015. These are important for the implementation
+    of Kalofolias' graph learning algorithm in Python.
+
+    Date: May, 2021
+    Author: Juan Felipe Florez-Ospina
+    testing: main_test_squareform_sp    
+    """
+
 import numpy as np
 import scipy as sp
 import time
