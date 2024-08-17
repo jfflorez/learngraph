@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import src.utils as utils
 import src.prox  as prox
 
+
 def gsp_learn_graph_log_degrees(Z, a, b, params={'nargout': 1}):
 
     """ GSP_LEARN_GRAPH_LOG_DEGREES learns an adjacency matrix W from a pairwise distance matrix Z by solving:
@@ -274,7 +275,7 @@ def gsp_learn_graph_log_degrees(Z, a, b, params={'nargout': 1}):
     #f.prox = @(w, c) min(params.max_w, max(0, w - 2*c*z));  % all change the same
 
     param_prox_log = {'verbose': params['verbosity'] - 3}
-    g = {'eval': lambda z: -a*np.sum(np.log(z),axis=0),
+    g = {'eval': lambda z: -a*np.sum(np.log(z+1e-10),axis=0),
          'prox': lambda z, c: prox.prox_sum_log(z, c*a, param_prox_log)}
     #g.eval = @(z) -a * sum(log(z));
     #g.prox = @(z, c) prox_sum_log(z, c*a, param_prox_log);
