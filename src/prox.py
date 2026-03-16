@@ -10,7 +10,6 @@
 #from math import gamma
 import time
 import numpy as np
-import src.utils as utils # explicit relative import
 
 def prox_sum_log(x, gamma, param={'nargout': 1}):
     """    PROX_SUM_LOG Proximal operator of log-barrier  - sum(log(x))
@@ -114,18 +113,19 @@ def prox_sum_log(x, gamma, param={'nargout': 1}):
 
 
 
-    sol = (x + np.sqrt(x**2 + 4*gamma)) /2
+    sol = (x + np.sqrt(x**2 + 4*gamma)) / 2
+    x_safe = np.maximum(x, np.finfo(float).tiny)
     info = {'algo': 'prox_sum_log',
             'iter': 0,
-            'final_eval': -gamma * np.sum(np.log(utils.reshape_as_column(x)),axis = 0),
-            'crit' : '--',
+            'final_eval': -gamma * np.sum(np.log(x_safe.reshape(x.size, 1)), axis=0),
+            'crit': '--',
             'time': time.time() - t1}
-        
+    
     # Log after the prox
     if param['verbose'] >= 1:
         print('prox_sum_log: - sum(log(x)) =', info['final_eval'] / gamma)
         if param['verbose'] > 1:
-            n_neg = utils.nnz(utils.reshape_as_column((x <= 0).astype('int32')))
+            n_neg = np.count_nonzero(np.reshape((x <= 0),(x.size,1)).astype('int32'))
             if n_neg > 0:
                 print('(',n_neg,' negative elements, log not defined, check stability)')
         print('\n')
