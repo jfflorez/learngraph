@@ -14,10 +14,29 @@ from scipy.sparse import coo_matrix, isspmatrix, find
 from scipy.spatial.distance import pdist
 import matplotlib.pyplot as plt
 
-#from utils import *
-import src.utils as utils
-import src.prox  as prox
+from pathlib import Path
+import sys
+import importlib
 
+_src_dir      = Path(__file__).parent
+_project_dir  = _src_dir.parent
+_project_name = _project_dir.name
+
+if str(_project_dir.parent) not in sys.path:
+    sys.path.append(str(_project_dir.parent))
+
+try:
+    utils = importlib.import_module(f"{_project_name}.src.utils")
+    prox  = importlib.import_module(f"{_project_name}.src.prox")
+except ModuleNotFoundError as e:
+    raise ImportError(
+        f"Could not import dependencies. Expected structure:\n"
+        f"  <projectName>/\n"
+        f"    src/\n"
+        f"      utils.py\n"
+        f"      prox.py\n"
+        f"Inferred project name: '{_project_name}'"
+    ) from e
 
 def gsp_learn_graph_log_degrees(Z, a, b, params={'nargout': 1}):
 
@@ -161,23 +180,22 @@ def gsp_learn_graph_log_degrees(Z, a, b, params={'nargout': 1}):
 
     if not 'fix_zeros' in params: params['fix_zeros'] = isspmatrix(Z) 
 
-    if not 'max_w' in params:     params['max_w'] = np.Inf 
+    if not 'max_w' in params:     params['max_w'] = np.inf 
     if not 'nargout' in params: params['nargout'] = 1
     
     #print(params.values())
 
     ## Fix parameter size and initialize
-    if utils.isvector(Z):
-        z = Z;  # lazy copying of matlab doesn't allocate new memory for z
-    else:
-        z = utils.squareform_sp(Z)
+
+    z = Z if utils.isvector(Z) else utils.squareform_sp(Z)
     # clear Z   # for large scale computation
 
     # Check if Z is a compressed form of a n by n distance matrix
-    card_E_0 = np.max(np.shape(z))# initial number of edges
-    n = np.round((1 + np.sqrt(1+8*card_E_0.astype(np.float32) ))/ 2); # number of nodes
+    card_E_0 = np.max(z.shape) # initial number of edges
+    n = int(np.round((1 + np.sqrt(1 + 8*card_E_0)) / 2)) # number of nodes
+
     # n(n-1)/2 = l => n = (1 + sqrt(1+8*l))/ 2
-    if not (card_E_0 - n*(n-1)/2 == 0):
+    if card_E_0 != n*(n-1)//2: ## // floor integer division
         raise ValueError('The length of Z must be the same as the number of upper diagonal elements of an n x n matrix')
 
     z = utils.reshape_as_column(z)
@@ -196,19 +214,17 @@ def gsp_learn_graph_log_degrees(Z, a, b, params={'nargout': 1}):
         w_0 = np.zeros(z.shape)
 
     # if sparsity pattern is fixed we optimize with respect to a smaller number
-    # of variables, all included in w.
-    if params['fix_zeros']: # even if this is not explicitly set to True, it can be automatically set to True 
-        # when the pairwise distance matrix Z is sparse.
+    # of variables, all included in w
+    if params['fix_zeros']:
         if 'edge_mask' in params:
             if not utils.isvector(params['edge_mask']):
                 params['edge_mask'] = utils.reshape_as_column(utils.squareform_sp(params['edge_mask']))
             ind = find(params['edge_mask'])
-            
             [S, St] = utils.sum_squareform(n,params['edge_mask'])
             norm_K = np.sqrt(2*(n-1)) * np.sqrt(utils.nnz(params['edge_mask']) / (n*(n+1)/2)) /np.sqrt(2)
         else:
-            ind = z.nonzero()
             z = z.tocsr()
+            ind = z.nonzero()
             [S, St] = utils.sum_squareform(n,z)
             norm_K = np.sqrt(2*(n-1)) * np.sqrt(utils.nnz(z) / (n*(n+1)/2)) /np.sqrt(2)
 
@@ -275,7 +291,7 @@ def gsp_learn_graph_log_degrees(Z, a, b, params={'nargout': 1}):
     #f.prox = @(w, c) min(params.max_w, max(0, w - 2*c*z));  % all change the same
 
     param_prox_log = {'verbose': params['verbosity'] - 3}
-    g = {'eval': lambda z: -a*np.sum(np.log(z+1e-10),axis=0),
+    g = {'eval': lambda z: -a*np.sum(np.log(z),axis=0),
          'prox': lambda z, c: prox.prox_sum_log(z, c*a, param_prox_log)}
     #g.eval = @(z) -a * sum(log(z));
     #g.prox = @(z, c) prox_sum_log(z, c*a, param_prox_log);
@@ -477,7 +493,7 @@ def estimate_theta(Z,k):
         b_k = np.cumsum(z_row[idx_sort])[k_ - 1]
         z_k = z_row[idx_sort[k_ - 1]]
         z_k_plus_1 = z_row[idx_sort[k_]]
-        theta_ub += 1/np.sqrt(k*(z_k**2)-b_k*z_k)
-        theta_lb += 1/np.sqrt(k*(z_k_plus_1**2)-b_k*z_k_plus_1)
+        theta_ub += 1/np.sqrt(k_*(z_k**2)-b_k*z_k)
+        theta_lb += 1/np.sqrt(k_*(z_k_plus_1**2)-b_k*z_k_plus_1)
 
     return np.sqrt((theta_lb*theta_ub))/n
